@@ -108,6 +108,11 @@ export function AuthForm() {
     setIsLoading(true)
     try {
       const result = await registerUser(values.email, values.password)
+  
+      if (result.status === 400) {
+        throw new Error(result.message || "Email already registered")
+      }
+
       setNotification({ type: 'success', message: result.message })
       // Automatically log in after successful registration
       const loginResult = await loginUser(values.email, values.password)

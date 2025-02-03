@@ -13,8 +13,8 @@ const menuItems = [
   { icon: FileText, label: 'Prompt Management', href: '/prompt-management' },
 ]
 
-export function AppSidebar() {
-  const [isOpen, setIsOpen] = useState(true)
+export function AppSidebar({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false) 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
@@ -36,60 +36,68 @@ export function AppSidebar() {
     router.push('/login')
   }
 
-  if (isLoading || !isAuthenticated || pathname === '/login') {
+  if (isLoading || !isAuthenticated || pathname === "/login") {
     return null
   }
 
   return (
-    <div
-      className={cn(
-        "fixed left-0 top-0 z-40 h-full bg-gray-900 text-white transition-all duration-300 ease-in-out",
-        isOpen ? "w-64" : "w-16"
-      )}
-    >
-      <Button
-        variant="ghost"
+    <div className="flex h-screen">
+  
+      <div
         className={cn(
-          "absolute top-4 -right-4 z-50 h-8 w-8 rounded-full bg-gray-800 p-0 hover:bg-gray-700",
-          isOpen ? "-right-4" : "-right-4"
+          "fixed left-0 top-0 z-40 h-full bg-gray-900 text-white transition-all duration-300 ease-in-out flex flex-col",
+          isOpen ? "w-64" : "w-16"
         )}
-        onClick={() => setIsOpen(!isOpen)}
       >
+        <Button
+          variant="ghost"
+          className="absolute top-4 -right-4 z-50 h-8 w-8 rounded-full bg-gray-800 p-0 hover:bg-gray-700"
+          onClick={() => setIsOpen(!isOpen)}
+        >
         {isOpen ? '<' : '>'}
-      </Button>
-      <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center justify-center">
-          <div className="rounded-full bg-white p-2">
-            <Mic className="h-8 w-8 text-gray-900" />
+        </Button>
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-center">
+            <div className="rounded-full bg-white p-2">
+              <Mic className="h-8 w-8 text-gray-900" />
+            </div>
+          </div>
+          <nav className="flex-1 space-y-2 p-4">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center rounded-lg p-2 transition-colors hover:bg-gray-800",
+                  pathname === item.href && "bg-gray-800"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {isOpen && <span className="ml-3">{item.label}</span>}
+              </Link>
+            ))}
+          </nav>
+          <div className="p-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              {isOpen && <span className="ml-3">Logout</span>}
+            </Button>
           </div>
         </div>
-        <nav className="flex-1 space-y-2 p-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center rounded-lg p-2 transition-colors hover:bg-gray-800",
-                pathname === item.href && "bg-gray-800"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {isOpen && <span className="ml-3">{item.label}</span>}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-5 w-5" />
-            {isOpen && <span className="ml-3">Logout</span>}
-          </Button>
-        </div>
+      </div>
+
+      <div
+        className={cn(
+          "flex-1 transition-all duration-300 ease-in-out p-6",
+          isOpen ? "ml-64" : "ml-16"
+        )}
+      >
+        {children}
       </div>
     </div>
   )
 }
-

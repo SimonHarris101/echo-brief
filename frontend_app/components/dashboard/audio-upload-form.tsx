@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -13,9 +15,10 @@ import { Loader2 } from "lucide-react"
 import { NotificationBanner } from "@/components/ui/notification-banner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Define the form schema using Zod
 const formSchema = z.object({
-  audioFile: z.instanceof(File).refine((file) => file.size <= 100000000, {
-    message: "Audio file must be 5MB or less.",
+  audioFile: z.instanceof(File).refine((file) => file.size <= 10000000, {
+    message: "Audio file must be 5MB or less.", // \
   }),
   promptCategory: z.string({
     required_error: "Please select a prompt category.",
@@ -25,6 +28,7 @@ const formSchema = z.object({
   }),
 })
 
+// Define interfaces for prompts, subcategories, and categories
 interface Prompt {
   [key: string]: string
 }
@@ -41,11 +45,13 @@ interface Category {
   subcategories: Subcategory[]
 }
 
+// Main component for audio upload form
 export function AudioUploadForm() {
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [loadingCategories, setLoadingCategories] = useState(true) // Loading state for categories
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,17 +59,27 @@ export function AudioUploadForm() {
   })
 
   useEffect(() => {
-    fetchPrompts()
-      .then((response) => {
-        setCategories(response.data)
-      })
-      .catch((error) => {
-        console.error("Error fetching prompts:", error)
-        setNotification({
-          type: "error",
-          message: "Failed to load prompt categories. Please try again later.",
+    const storedCategories = localStorage.getItem("promptCategories")
+    if (storedCategories) {
+      setCategories(JSON.parse(storedCategories))
+      setLoadingCategories(false) // Stop loading once categories are set
+    } else {
+      fetchPrompts()
+        .then((response) => {
+          const fetchedCategories = response.data
+          setCategories(fetchedCategories)
+          localStorage.setItem("promptCategories", JSON.stringify(fetchedCategories))
+          setLoadingCategories(false) // Stop loading once fetched
         })
-      })
+        .catch((error) => {
+          console.error("Error fetching prompts:", error)
+          setNotification({
+            type: "error",
+            message: "Failed to load prompt categories. Please try again later.",
+          })
+          setLoadingCategories(false) // Stop loading on error
+        })
+    }
   }, [])
 
   const onSubmit = useCallback(
@@ -82,6 +98,8 @@ export function AudioUploadForm() {
           message: `File ${values.audioFile.name} uploaded successfully! Job ID: ${response.job_id}`,
         })
         form.reset()
+        setSelectedCategory(null)
+        setSelectedSubcategory(null)
       } catch (error) {
         console.error("Error in form submission:", error)
         let errorMessage = "There was an error uploading your file. Please try again."
@@ -124,9 +142,15 @@ export function AudioUploadForm() {
               <FormItem>
                 <FormLabel>Audio File</FormLabel>
                 <FormControl>
-                  <Input type="file" accept="audio/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
+                  <Input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      field.onChange(e.target.files?.[0])
+                    }}
+                  />
                 </FormControl>
-                <FormDescription>Upload an audio file (max 5MB)</FormDescription>
+                <FormDescription>Upload an audio file (max 10MB)</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -138,6 +162,7 @@ export function AudioUploadForm() {
               <FormItem>
                 <FormLabel>Prompt Category</FormLabel>
                 <Select
+                  value={selectedCategory || ""}
                   onValueChange={(value) => {
                     field.onChange(value)
                     setSelectedCategory(value)
@@ -169,6 +194,7 @@ export function AudioUploadForm() {
               <FormItem>
                 <FormLabel>Prompt Subcategory</FormLabel>
                 <Select
+                  value={selectedSubcategory || ""}
                   onValueChange={(value) => {
                     field.onChange(value)
                     setSelectedSubcategory(value)
@@ -192,25 +218,30 @@ export function AudioUploadForm() {
               </FormItem>
             )}
           />
-          {selectedSubcategoryData && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Selected Prompt</CardTitle>
-                <CardDescription>Prompt details for the selected subcategory</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {Object.entries(selectedSubcategoryData.prompts).map(([key, value]) => (
-                  <div key={key} className="mb-4">
-                    <h4 className="font-semibold">{key}</h4>
-                    <p className="text-sm text-gray-600">{value}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+         {selectedSubcategoryData && (
+  <Card>
+    <CardHeader>
+      <CardTitle className="font-bold">{selectedSubcategoryData.subcategory_name}</CardTitle>
+      <CardDescription>Prompt details for the selected subcategory</CardDescription>
+    </CardHeader>
+    <CardContent className="p-4 overflow-auto max-h-60">
+      {Object.entries(selectedSubcategoryData.prompts).map(([key, value]) => (
+        <div key={key} className="mb-4">
+          <h4 className="font-semibold text-lg">{key}</h4>
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]} 
+            className="text-sm text-gray-600"
+          >
+            {value}
+          </ReactMarkdown>
+        </div>
+      ))}
+    </CardContent>
+  </Card>
+)}
           <Button
             type="submit"
-            disabled={isUploading}
+            disabled={isUploading || !form.formState.isValid} // Disable if uploading or form is invalid
             className="bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
           >
             {isUploading ? (
@@ -227,4 +258,3 @@ export function AudioUploadForm() {
     </>
   )
 }
-

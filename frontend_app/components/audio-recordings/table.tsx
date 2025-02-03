@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,7 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -20,74 +20,72 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, ArrowUpDown, FileAudio, Eye, Download, RefreshCw } from 'lucide-react'
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAudioRecordings, AudioRecording } from "./audio-recordings-context"
-import { FilterValues } from "./filter"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ViewDetailsDialog } from "./view-details-dialog"
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, ArrowUpDown, FileAudio, Eye, RefreshCw } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAudioRecordings, AudioRecording } from "./audio-recordings-context";
+import { FilterValues } from "./filter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ViewDetailsDialog } from "./view-details-dialog";
 
 interface AudioRecordingsTableProps {
-  filters: FilterValues
-  onFilterChange: (filters: FilterValues) => void
+  filters: FilterValues;
+  onFilterChange: (filters: FilterValues) => void;
 }
 
 export function AudioRecordingsTable({ filters, onFilterChange }: AudioRecordingsTableProps) {
-  const { audioRecordings, fetchAudioRecordings, error } = useAudioRecordings()
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
-  const [selectedRecording, setSelectedRecording] = useState<AudioRecording | null>(null)
+  const { audioRecordings, fetchAudioRecordings, error } = useAudioRecordings();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  const [selectedRecording, setSelectedRecording] = useState<AudioRecording | null>(null);
 
+  // Fetch audio recordings based on filters
   useEffect(() => {
-    fetchAudioRecordings(filters)
-  }, [filters, fetchAudioRecordings])
-
+    fetchAudioRecordings(filters);
+  }, [filters, fetchAudioRecordings]);
 
   const columns: ColumnDef<AudioRecording>[] = [
     {
       accessorKey: "id",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Job ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Job ID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
       accessorKey: "file_name",
       header: "File Name",
       cell: ({ row }) => {
-        const fileName = row.getValue("file_name") as string
+        const fileName = row.getValue("file_name") as string;
         return (
           <div className="flex items-center">
             <FileAudio className="mr-2 h-4 w-4" />
             {fileName}
           </div>
-        )
+        );
       },
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string
+        const status = row.getValue("status") as string;
         return (
           <Badge variant={
             status === "completed" ? "success" :
@@ -97,21 +95,21 @@ export function AudioRecordingsTable({ filters, onFilterChange }: AudioRecording
           }>
             {status}
           </Badge>
-        )
+        );
       },
     },
     {
       accessorKey: "created_at",
       header: "Upload Date",
       cell: ({ row }) => {
-        const date = new Date(parseInt(row.getValue("created_at")))
-        return date.toLocaleDateString()
+        const date = new Date(parseInt(row.getValue("created_at")));
+        return date.toLocaleDateString();
       },
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const audioRecording = row.original
+        const audioRecording = row.original;
 
         return (
           <DropdownMenu>
@@ -135,10 +133,10 @@ export function AudioRecordingsTable({ filters, onFilterChange }: AudioRecording
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: audioRecordings,
@@ -157,7 +155,7 @@ export function AudioRecordingsTable({ filters, onFilterChange }: AudioRecording
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   return (
     <Card>
@@ -245,6 +243,5 @@ export function AudioRecordingsTable({ filters, onFilterChange }: AudioRecording
         />
       )}
     </Card>
-  )
+  );
 }
-

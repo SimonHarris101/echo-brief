@@ -1,26 +1,24 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
+import { AudioRecordingsProvider } from "@/components/audio-recordings/audio-recordings-context";
+import { AudioRecordingsCombined, FilterValues } from "@/components/audio-recordings/AudioRecordingsCombined";
 import { AudioRecordingsHeader } from "@/components/audio-recordings/header"
-import { AudioRecordingsTable } from "@/components/audio-recordings/table"
-import { AudioRecordingsFilter, FilterValues } from "@/components/audio-recordings/filter"
-import { AudioRecordingsProvider } from "@/components/audio-recordings/audio-recordings-context"
+
 
 export default function AudioRecordingsPage() {
   const [filters, setFilters] = useState<FilterValues>({
-    jobId: "",
+    job_id: "",
     status: "all",
-    uploadDate: new Date().toISOString().split('T')[0], // Default to today's date
-  })
+    created_at: new Date().toISOString().split('T')[0], // Default to today's date
+  });
 
   return (
     <AudioRecordingsProvider>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <AudioRecordingsHeader />
-        <AudioRecordingsFilter onFilterChange={setFilters} initialFilters={filters} />
-        <AudioRecordingsTable filters={filters} onFilterChange={setFilters} />
+      <AudioRecordingsHeader />
+        <AudioRecordingsCombined initialFilters={filters} />
       </div>
     </AudioRecordingsProvider>
-  )
+  );
 }
-
