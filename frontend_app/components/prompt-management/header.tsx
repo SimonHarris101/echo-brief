@@ -16,13 +16,13 @@ export function PromptManagementHeader() {
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-1">
-        <h2 className="text-2xl font-semibold tracking-tight">Prompt Management</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Prompt Management DEMO ONLY (UNDER DEVELOPMENT)</h2>
         <Breadcrumb>
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbItem>
-            <BreadcrumbPage>Prompt Management</BreadcrumbPage>
+            <BreadcrumbPage>Prompt Management (UNDER DEVELOPMENT)</BreadcrumbPage>
           </BreadcrumbItem>
         </Breadcrumb>
         <p className="text-sm text-muted-foreground">
