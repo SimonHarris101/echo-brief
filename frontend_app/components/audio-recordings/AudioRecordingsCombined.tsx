@@ -53,7 +53,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
 
   const form = useForm<FilterValues>({
     resolver: zodResolver(filterSchema),
-    defaultValues: { ...initialFilters, created_at: "" },
+    defaultValues: { ...initialFilters, created_at: format(new Date(), "yyyy-MM-dd")},
   });
 
   // Fetch data from API and cache it
