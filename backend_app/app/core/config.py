@@ -4,7 +4,8 @@ from typing import Dict, Any
 from dotenv import load_dotenv
 from azure.cosmos.exceptions import CosmosHttpResponseError
 from azure.identity import DefaultAzureCredential, CredentialUnavailableError
-from azure.cosmos import CosmosClient, PartitionKey
+from azure.cosmos import PartitionKey
+import azure.cosmos.cosmos_client as cosmos_client
 
 # Load environment variables
 load_dotenv()
@@ -46,7 +47,7 @@ class AppConfig:
             # Initialize cosmos configuration
             self.cosmos = {
                 "endpoint": get_required_env_var("AZURE_COSMOS_ENDPOINT"),
-                "database": f"{prefix}db",
+                "database": "VoiceDB",
                 "containers": {
                     "auth": f"{prefix}auth",
                     "jobs": f"{prefix}jobs",
@@ -106,13 +107,13 @@ class CosmosDB:
             raise DatabaseError(f"Authentication error: {str(e)}")
 
         try:
-            self.client = CosmosClient(
+            self.client = cosmos_client.CosmosClient(
                 url=config.cosmos["endpoint"], credential=credential
             )
 
             # Create database if it doesn't exist
             database_name = config.cosmos["database"]
-            self.database = self.client.create_database_if_not_exists(id=database_name)
+            self.database = self.client.get_database_client(database_name)
             self.logger.info(f"Database {database_name} is ready")
 
             # Create containers if they don't exist
@@ -120,25 +121,22 @@ class CosmosDB:
 
             # Auth container
             auth_container_name = containers["auth"]
-            self.auth_container = self.database.create_container_if_not_exists(
-                id=auth_container_name,
-                partition_key=PartitionKey(path="/id"),
+            self.auth_container = self.database.get_container_client(
+                auth_container_name
             )
             self.logger.info(f"Auth container {auth_container_name} is ready")
 
             # Jobs container
             jobs_container_name = containers["jobs"]
-            self.jobs_container = self.database.create_container_if_not_exists(
-                id=jobs_container_name,
-                partition_key=PartitionKey(path="/id"),
+            self.jobs_container = self.database.get_container_client(
+                jobs_container_name
             )
             self.logger.info(f"Jobs container {jobs_container_name} is ready")
 
             # Prompts container
             prompts_container_name = containers["prompts"]
-            self.prompts_container = self.database.create_container_if_not_exists(
-                id=prompts_container_name,
-                partition_key=PartitionKey(path="/id"),
+            self.prompts_container = self.database.get_container_client(
+                prompts_container_name
             )
             self.logger.info(f"Prompts container {prompts_container_name} is ready")
 

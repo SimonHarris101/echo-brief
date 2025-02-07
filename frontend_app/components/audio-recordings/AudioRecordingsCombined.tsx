@@ -53,7 +53,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
 
   const form = useForm<FilterValues>({
     resolver: zodResolver(filterSchema),
-    defaultValues: { ...initialFilters, created_at: format(new Date(), "yyyy-MM-dd")},
+    defaultValues: { ...initialFilters, created_at: format(new Date(), "yyyy-MM-dd") },
   });
 
   // Fetch data from API and cache it
@@ -104,7 +104,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
   // Refresh button handler 
   const handleRefresh = () => {
     localStorage.removeItem("cachedJobs"); // Clear cache
-    fetchJobData(true); 
+    fetchJobData(true);
   };
 
   // Apply Filters based on Cached Data
@@ -112,15 +112,15 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
     setIsLoading(true);
 
     const filteredData = cachedData.filter((job) => {
-        const jobDate = format(new Date(parseInt(job.created_at)), "yyyy-MM-dd");
+      const jobDate = format(new Date(parseInt(job.created_at)), "yyyy-MM-dd");
       return (
         (data.job_id ? job.id.includes(data.job_id) : true) &&
         (data.status !== "all" ? job.status === data.status : true) &&
         (data.created_at ? jobDate === data.created_at : true)
-    );
+      );
 
-       
-      });
+
+    });
 
     setAudioRecordings(filteredData);
     setIsLoading(false);
@@ -178,39 +178,39 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                     <FormMessage />
                   </FormItem>
                 )} />
-             <FormField
-  control={form.control}
-  name="created_at"
-  render={({ field }) => (
-    <FormItem >
-      <FormLabel>Upload Date</FormLabel>
-      <Popover>
-        <PopoverTrigger asChild>
-          <FormControl>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !field.value && "text-muted-foreground"
-              )}
-            >
-              {field.value ? format(new Date(field.value), "yyyy-MM-dd") : "Pick a date"}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-            </Button>
-          </FormControl>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={field.value ? new Date(field.value) : undefined}
-            onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-      <FormMessage />
-    </FormItem>
-  )}/>
+                <FormField
+                  control={form.control}
+                  name="created_at"
+                  render={({ field }) => (
+                    <FormItem >
+                      <FormLabel>Upload Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(new Date(field.value), "yyyy-MM-dd") : "Pick a date"}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
               </div>
 
@@ -229,31 +229,31 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
 
           {isLoading && <Progress value={90} className="mt-4 mb-4" />}
 
-        
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job ID</TableHead>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Upload Date</TableHead>
-                  <TableHead>Actions</TableHead>
 
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell className="text-blue-500 font-medium">{row.file_name}</TableCell>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Job ID</TableHead>
+                <TableHead>File Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Upload Date</TableHead>
+                <TableHead>Actions</TableHead>
 
-                    <TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.id}</TableCell>
+                  <TableCell className="text-blue-500 font-medium">{row.file_name}</TableCell>
+
+                  <TableCell>
                     <Badge className={cn("px-4 py-1 text-xs rounded-md min-w-[100px] flex items-center justify-center", statusVariants[row.status] || statusVariants.default)}>
-                        {row.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(parseInt(row.created_at)).toLocaleDateString()}</TableCell>
-                    <TableCell>
+                      {row.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(parseInt(row.created_at)).toLocaleDateString()}</TableCell>
+                  <TableCell>
                     {/* Action Dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -272,7 +272,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                             View Details
                           </DropdownMenuItem>
                           {row.status === "uploaded" && (
-                            <DropdownMenuItem onClick={() =>null}>
+                            <DropdownMenuItem onClick={() => null}>
                               <RefreshCw className="mr-2 h-4 w-4" />
                               Retry Processing
                             </DropdownMenuItem>
@@ -281,11 +281,11 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                       )}
                     </DropdownMenu>
                   </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
           {/* Pagination Controls*/}
           <div className="flex justify-between mt-4">
             <Button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>

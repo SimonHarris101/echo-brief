@@ -14,7 +14,7 @@ from app.main import app
 client = TestClient(app)
 
 
-def get_auth_headers(client, email="a@mous.uk", password="123456"):
+def get_auth_headers(client, email="moustafa@test.com", password="123456"):
     """Helper function to get auth headers"""
     # Register user if not exists
     client.post("/register", json={"email": email, "password": password})
