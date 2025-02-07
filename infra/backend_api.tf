@@ -91,44 +91,6 @@ resource "null_resource" "publish_backend_app_zip" {
   depends_on = [data.archive_file.python_backend_webapp_package]
 }
 
-# # Assign Cognitive Services Contributor role to the Web App
-# resource "azurerm_role_assignment" "cognitive_services_contributor" {
-#   depends_on                       = [azurerm_linux_web_app.backend_webapp, azurerm_cognitive_deployment.openai_deployments]
-#   scope                            = azurerm_cognitive_account.openai.id
-#   role_definition_name             = "Cognitive Services Contributor"
-#   principal_id                     = azurerm_linux_web_app.backend_webapp.identity[0].principal_id
-#   skip_service_principal_aad_check = true
-# }
-
-
-# # Assign Cognitive Services OpenAI Contributor role to the Web App
-# resource "azurerm_role_assignment" "openai_contributor" {
-#   depends_on           = [azurerm_linux_web_app.backend_webapp, azurerm_cognitive_deployment.openai_deployments]
-#   scope                = azurerm_cognitive_account.openai.id
-#   role_definition_name = "Cognitive Services OpenAI Contributor"
-
-#   principal_id                     = azurerm_linux_web_app.backend_webapp.identity[0].principal_id
-#   skip_service_principal_aad_check = true
-# }
-
-
-# resource "azurerm_role_assignment" "multi_cognitive_services_contributor" {
-#   depends_on                       = [azurerm_linux_web_app.backend_webapp, azurerm_cognitive_account.SpeechServices]
-#   scope                            = azurerm_cognitive_account.SpeechServices.id
-#   role_definition_name             = "Cognitive Services Contributor"
-#   principal_id                     = azurerm_linux_web_app.backend_webapp.identity[0].principal_id
-#   skip_service_principal_aad_check = true
-
-# }
-
-# # Assign Cognitive Services OpenAI Contributor role to the Web App
-# resource "azurerm_role_assignment" "speech_contributor" {
-#   depends_on                       = [azurerm_linux_web_app.backend_webapp, azurerm_cognitive_account.SpeechServices]
-#   scope                            = azurerm_cognitive_account.SpeechServices.id
-#   role_definition_name             = "Cognitive Services Speech Contributor"
-#   principal_id                     = azurerm_linux_web_app.backend_webapp.identity[0].principal_id
-#   skip_service_principal_aad_check = true
-# }
 
 #Storage Account Contributor
 resource "azurerm_role_assignment" "storage_account_contributor" {
