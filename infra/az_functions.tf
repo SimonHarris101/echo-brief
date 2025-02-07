@@ -35,9 +35,11 @@ resource "azurerm_application_insights" "functions_app_insights" {
 }
 
 resource "azurerm_linux_function_app" "function_call_function_app" {
-  name                 = "${local.name_prefix}-audio-processor-${random_string.unique.result}"
-  resource_group_name  = azurerm_resource_group.rg.name
-  location             = azurerm_resource_group.rg.location
+  depends_on          = [azurerm_cognitive_deployment.openai_deployments, azurerm_cosmosdb_account.voice_account, azurerm_storage_account.storage]
+  name                = "${local.name_prefix}-audio-processor-${random_string.unique.result}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
   service_plan_id      = azurerm_service_plan.az_func_audio_service_plan.id
   storage_account_name = azurerm_storage_account.storage.name
 

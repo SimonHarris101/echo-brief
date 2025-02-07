@@ -16,14 +16,11 @@ variable "prefix" {
   default = "tf-"
 }
 
-variable "os_type" {
-  type        = string
-  default     = "windows"
+variable "is_windows" {
+  type        = bool
+  default     = true
   description = "Operating system type (windows/linux/mac)"
-  validation {
-    condition     = contains(["windows", "linux", "mac"], var.os_type)
-    error_message = "OS type must be windows, linux, or mac"
-  }
+
 }
 
 variable "name" {

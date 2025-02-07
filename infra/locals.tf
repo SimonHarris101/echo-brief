@@ -15,12 +15,28 @@ locals {
     CostCenter  = "AI-TEAM"
   }
 
+  # Command to run on Windows.
+  base_name = "${local.name_prefix}-echo-brief-backend-api-${random_string.unique.result}"
 
-  sed_command = var.os_type == "windows" ? (
-    "powershell -Command \"(Get-Content '.\\frontend_app\\constants\\apiConstants.js') | ForEach-Object { $_ -replace 'BASE_NAME = \\\"BASE_NAME\\\"', 'BASE_NAME = \\\"${local.name_prefix}-echo-brief-backend-api-${random_string.unique.result}\\\"' } | Set-Content '.\\frontend_app\\constants\\apiConstants.js'\""
-    ) : (
-    "sed -i 's/BASE_NAME = \"BASE_NAME\"/BASE_NAME = \"${local.name_prefix}-echo-brief-backend-api-${random_string.unique.result}\"/g' frontend_app/constants/apiConstants.js"
-  )
+  # File path (used for the Unix command)
+  file_path = "frontend_app/constants/apiConstants.js"
+
+  # Command to run on Windows.
+  win_command = <<-EOT
+    powershell -Command "& {
+      \$file = '.\\frontend_app\\constants\\apiConstants.js';
+      # Read the entire file as a single string.
+      \$content = Get-Content \$file -Raw;
+      # Replace the literal text: BASE_NAME = "BASE_NAME"
+      \$newContent = \$content -replace 'BASE_NAME\s*=\s*"BASE_NAME"', 'BASE_NAME = "${local.base_name}"';
+      Set-Content -Path \$file -Value \$newContent;
+    }"
+  EOT
+
+  # Command to run on Linux/macOS.
+  unix_command = "sed -i 's/BASE_NAME = \"BASE_NAME\"/BASE_NAME = \"${local.base_name}\"/g' ${local.file_path}"
+
+
 
 
 
@@ -29,6 +45,6 @@ locals {
   #   - Copy the entire '../frontend_app' directory to the current directory.
   #
   # For Linux/macOS we use rm and cp as before.
-  copy_frontend_command = var.os_type == "windows" ? "powershell -Command \"if (Test-Path './frontend.zip') { Remove-Item './frontend.zip' -Force -Recurse }; if (Test-Path './frontend_app') { Remove-Item './frontend_app' -Force -Recurse }; Copy-Item -Path '../frontend_app' -Destination '.' -Recurse -Force\"" : "rm -rf frontend.zip frontend_app && cp -r ../frontend_app ."
+  copy_frontend_command = var.is_windows ? "powershell -Command \"if (Test-Path './frontend.zip') { Remove-Item './frontend.zip' -Force -Recurse }; if (Test-Path './frontend_app') { Remove-Item './frontend_app' -Force -Recurse }; Copy-Item -Path '../frontend_app' -Destination '.' -Recurse -Force\"" : "rm -rf frontend.zip frontend_app && cp -r ../frontend_app ."
 
 }
