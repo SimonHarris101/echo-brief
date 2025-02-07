@@ -20,4 +20,5 @@ resource "azurerm_cognitive_account" "SpeechServices" {
       tags
     ]
   }
+
 }

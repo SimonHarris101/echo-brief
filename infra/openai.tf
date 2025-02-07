@@ -49,6 +49,7 @@ resource "azurerm_cognitive_account" "openai" {
       tags
     ]
   }
+
 }
 
 resource "azurerm_cognitive_deployment" "openai_deployments" {

@@ -5,6 +5,7 @@ resource "azurerm_service_plan" "backend_appserviceplan" {
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
   sku_name            = "B3"
+  tags                = local.default_tags
 }
 
 
@@ -80,6 +81,7 @@ resource "azurerm_linux_web_app" "backend_webapp" {
   identity {
     type = "SystemAssigned"
   }
+  tags = local.default_tags
 
 }
 

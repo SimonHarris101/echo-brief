@@ -3,6 +3,7 @@ resource "azurerm_static_web_app" "frontend_webapp" {
   name                = "${local.name_prefix}-echo-brief-frontend-${random_string.unique.result}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.static_web_location
+  tags                = local.default_tags
 }
 
 resource "null_resource" "copy_frontend_source_code" {

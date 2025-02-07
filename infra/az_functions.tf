@@ -5,7 +5,7 @@ resource "azurerm_service_plan" "az_func_audio_service_plan" {
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
   sku_name            = "S1"
-
+  tags                = local.default_tags
 
 }
 
@@ -26,6 +26,14 @@ data "archive_file" "az_func_audio_package" {
   ]
 }
 
+resource "azurerm_application_insights" "functions_app_insights" {
+  name                = "${local.name_prefix}-audio-processor"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  application_type    = "web"
+  tags                = local.default_tags
+}
+
 resource "azurerm_linux_function_app" "function_call_function_app" {
   name                 = "${local.name_prefix}-audio-processor"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -33,15 +41,19 @@ resource "azurerm_linux_function_app" "function_call_function_app" {
   service_plan_id      = azurerm_service_plan.az_func_audio_service_plan.id
   storage_account_name = azurerm_storage_account.storage.name
 
-
-
   site_config {
-    cors {
-      allowed_origins = ["*"]
-    }
+    always_on                              = true
+    remote_debugging_enabled               = true
+    application_insights_connection_string = azurerm_application_insights.functions_app_insights.connection_string
     application_stack {
       python_version = "3.11"
     }
+    ftps_state = "AllAllowed"
+
+    cors {
+      allowed_origins = ["*"]
+    }
+
   }
 
   app_settings = {
@@ -61,10 +73,12 @@ resource "azurerm_linux_function_app" "function_call_function_app" {
     AZURE_SPEECH_DEPLOYMENT           = azurerm_cognitive_account.SpeechServices.name
     AZURE_SPEECH_MAX_SPEAKERS         = "2"
     AZURE_SPEECH_TRANSCRIPTION_LOCALE = "en-US"
+    AzureWebJobsStorage               = azurerm_storage_account.storage.primary_connection_string
   }
   identity {
     type = "SystemAssigned"
   }
+  tags = local.default_tags
 }
 
 
