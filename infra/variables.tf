@@ -44,13 +44,6 @@ variable "location" {
   default = "uksouth"
 }
 
-variable "postgres_db_name" {
-  default = "CallSessions"
-}
-
-variable "postgres_administrator_login" {
-  default = "citus"
-}
 
 variable "custom_domain" {
   default = "echo-brief"
@@ -59,6 +52,7 @@ variable "custom_domain" {
 variable "openai_service_name" {
   default = "az-openai-service"
 }
+
 variable "public_network_access_enabled" {
   default = true
 }
@@ -71,9 +65,6 @@ variable "speech_sku" {
   default = "S0"
 }
 
-variable "acs_data_location" {
-  default = "UK"
-}
 
 variable "openai_location" {
   default = "swedencentral"

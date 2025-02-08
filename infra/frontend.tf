@@ -7,16 +7,16 @@ resource "azurerm_static_web_app" "frontend_webapp" {
   tags                = local.default_tags
 }
 
-# resource "null_resource" "copy_frontend_source_code" {
-#   # triggers = {
-#   #   always_run = timestamp() # Forces re-execution every time Terraform runs
-#   # }
-
-#   provisioner "local-exec" {
-#     command     = local.copy_frontend_command
-#     working_dir = path.module # Ensures it runs from the correct directory
-#   }
-# }
+resource "null_resource" "copy_frontend_source_code" {
+  triggers = {
+    always_run = timestamp()
+  }
+  provisioner "local-exec" {
+    interpreter = var.is_windows ? ["PowerShell", "-Command"] : ["/bin/bash", "-c"]
+    command     = var.is_windows ? "Copy-Item -Path ..\\frontend_app -Destination . -Recurse -Force" : "cp -R ../frontend_app ."
+    working_dir = path.module
+  }
+}
 
 # Replace the base name in the apiConstants.js file
 # This works only for Windows, we need to add a null_resource for Linux/macOS
