@@ -159,7 +159,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "all_access_role" {
     data_actions = [
       # Database level
       # "Microsoft.DocumentDB/databaseAccounts/readMetadata",
-      "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write",
+      #"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write",
       "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*",
       "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*",
 
