@@ -16,14 +16,11 @@ variable "prefix" {
   default = "tf-"
 }
 
-variable "os_type" {
-  type        = string
-  default     = "windows"
+variable "is_windows" {
+  type        = bool
+  default     = true
   description = "Operating system type (windows/linux/mac)"
-  validation {
-    condition     = contains(["windows", "linux", "mac"], var.os_type)
-    error_message = "OS type must be windows, linux, or mac"
-  }
+
 }
 
 variable "name" {
@@ -47,13 +44,6 @@ variable "location" {
   default = "uksouth"
 }
 
-variable "postgres_db_name" {
-  default = "CallSessions"
-}
-
-variable "postgres_administrator_login" {
-  default = "citus"
-}
 
 variable "custom_domain" {
   default = "echo-brief"
@@ -62,6 +52,7 @@ variable "custom_domain" {
 variable "openai_service_name" {
   default = "az-openai-service"
 }
+
 variable "public_network_access_enabled" {
   default = true
 }
@@ -74,9 +65,6 @@ variable "speech_sku" {
   default = "S0"
 }
 
-variable "acs_data_location" {
-  default = "UK"
-}
 
 variable "openai_location" {
   default = "swedencentral"
