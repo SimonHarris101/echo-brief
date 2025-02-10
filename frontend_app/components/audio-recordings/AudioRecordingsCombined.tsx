@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -11,12 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { JOBS_API } from "@/lib/apiConstants";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileAudio, Eye, RefreshCw } from "lucide-react";
+import { RefreshCcw, Eye, CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AudioRecordingsProvider } from "@/components/audio-recordings/audio-recordings-context";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -26,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import { ViewDetailsDialog } from "./view-details-dialog";
 
 const statusEnum = z.enum(["all", "uploaded", "processing", "completed", "failed"]);
@@ -41,98 +40,86 @@ export type FilterValues = z.infer<typeof filterSchema>;
 
 export function AudioRecordingsCombined({ initialFilters }: { initialFilters: FilterValues }) {
   const [audioRecordings, setAudioRecordings] = useState<any[]>([]);
-  const [cachedData, setCachedData] = useState<any[]>([]); // Cached API data
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const hasFetchedData = useRef(false);
+  const [loadingRefresh, setLoadingRefresh] = useState(false);
+  const [loadingReset, setLoadingReset] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
-
+  const hasFetchedData = useRef(false);
 
   const form = useForm<FilterValues>({
     resolver: zodResolver(filterSchema),
     defaultValues: { ...initialFilters, created_at: "" },
   });
 
-  // Fetch data from API and cache it
-  const fetchJobData = async (forceRefresh = false) => {
-    if (!forceRefresh) {
-      // Load from localStorage first
-      const cachedJobs = localStorage.getItem("cachedJobs");
-      if (cachedJobs) {
-        const parsedData = JSON.parse(cachedJobs);
-        setCachedData(parsedData);
-        setAudioRecordings(parsedData);
-        setIsLoading(false);
-        return;
+  const fetchJobData = useCallback(
+    async (forceRefresh = false, filters?: FilterValues) => {
+      if (!forceRefresh) {
+        const cachedJobs = localStorage.getItem("cachedJobs");
+        if (cachedJobs) {
+          setAudioRecordings(JSON.parse(cachedJobs));
+          setIsLoading(false);
+          return;
+        }
       }
-    }
 
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No authentication token found. Please log in again.");
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No authentication token found. Please log in again.");
 
-      const response = await fetch(JOBS_API, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
+        const params = new URLSearchParams({
+          job_id: filters?.job_id || "",
+          status: filters?.status && filters.status !== "all" ? filters.status : "",
+          created_at: filters?.created_at || "",
+        });
 
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const response = await fetch(`${JOBS_API}?${params.toString()}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      const data = await response.json();
-      setAudioRecordings(data.jobs || []);
-      setCachedData(data.jobs || []); // Store fresh data in state
-      localStorage.setItem("cachedJobs", JSON.stringify(data.jobs || [])); // Store in cache
-    } catch (error) {
-      console.error("Error fetching audio recordings:", error);
-      setError("Failed to fetch data. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-  // Load cached data on mount
+        const data = await response.json();
+        setAudioRecordings(data.jobs || []);
+        localStorage.setItem("cachedJobs", JSON.stringify(data.jobs || []));
+      } catch (error) {
+        console.error("Error fetching audio recordings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    if (hasFetchedData.current) return;
-    hasFetchedData.current = true;
-    fetchJobData();
-  }, []);
+    if (!hasFetchedData.current) {
+      hasFetchedData.current = true;
+      fetchJobData();
+    }
+  }, [fetchJobData]);
 
-  // Refresh button handler 
-  const handleRefresh = () => {
-    localStorage.removeItem("cachedJobs"); // Clear cache
-    fetchJobData(true);
+  // Refresh Handler (Keep Filters)
+  const handleRefresh = async () => {
+    setLoadingRefresh(true);
+    await fetchJobData(true, form.getValues());
+    setLoadingRefresh(false);
   };
 
-  // Apply Filters based on Cached Data
-  const onSubmit = (data: FilterValues) => {
-    setIsLoading(true);
-
-    const filteredData = cachedData.filter((job) => {
-      const jobDate = format(new Date(parseInt(job.created_at)), "yyyy-MM-dd");
-      return (
-        (data.job_id ? job.id.includes(data.job_id) : true) &&
-        (data.status !== "all" ? job.status === data.status : true) &&
-        (data.created_at ? jobDate === format(new Date(data.created_at), "yyyy-MM-dd") : true)
-      );
-
-
-    });
-
-    setAudioRecordings(filteredData);
-    setIsLoading(false);
-    setError(filteredData.length === 0 ? "No jobs found with the selected filters." : null);
-  };
-
-  // Reset Filters
-  const handleReset = () => {
+  // Reset button handler - clears filters 
+  const handleReset = async () => {
+    setLoadingReset(true);
     form.reset({ job_id: "", status: "all", created_at: "" });
-    setAudioRecordings(cachedData); // Load cached data instead of calling API
+    await fetchJobData(true);
+    setLoadingReset(false);
   };
 
   // Pagination Logic
@@ -154,7 +141,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="job_id" render={({ field }) => (
                   <FormItem>
@@ -168,69 +155,62 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                       <SelectContent>
                         {statusEnum.options.map((status) => (
-                          <SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>
+                          <SelectItem key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField
-                  control={form.control}
-                  name="created_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Upload Date</FormLabel>
-                      <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                              onClick={() => setIsDatePickerOpen(true)}
-                            >
-                              {field.value ? format(new Date(field.value), "yyyy-MM-dd") : "Pick a date"}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent align="start" className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => {
-                              const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-                              field.onChange(formattedDate);
-                              form.trigger("created_at");
-                              onSubmit({ ...form.getValues(), created_at: formattedDate });
-                              setIsDatePickerOpen(false);
-                            }}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
 
+                <FormField control={form.control} name="created_at" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Upload Date</FormLabel>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            onClick={() => setIsDatePickerOpen(true)}
+                          >
+                            {field.value ? format(new Date(field.value), "yyyy-MM-dd") : "Pick a date"}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => {
+                            const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+                            field.onChange(formattedDate);
+                            setIsDatePickerOpen(false);
+                          }} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
 
               <div className="flex justify-between items-center">
-                <div className="flex space-x-4">
-                  <Button type="submit">Apply Filters</Button>
-                  <Button type="button" variant="outline" onClick={handleReset}>Reset</Button>
-                </div>
-                <Button type="button" variant="outline" onClick={handleRefresh} className="flex items-center">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh
+                <Button variant="outline" onClick={handleReset} disabled={loadingReset}>
+                  <RefreshCcw className="w-4 h-4 mr-2" />
+                  {loadingReset ? "Resetting..." : "Reset"}
+                </Button>
+                <Button variant="outline" onClick={handleRefresh} disabled={loadingRefresh}>
+                  <RefreshCcw className="w-4 h-4 mr-2" />
+                  {loadingRefresh ? "Refreshing..." : "Refresh"}
                 </Button>
               </div>
             </form>
@@ -282,7 +262,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                             </DropdownMenuItem>
                             {row.status === "uploaded" && (
                               <DropdownMenuItem onClick={() => null}>
-                                <RefreshCw className="mr-2 h-4 w-4" />
+                                <RefreshCcw className="mr-2 h-4 w-4" />
                                 Retry Processing
                               </DropdownMenuItem>
                             )}
