@@ -334,7 +334,7 @@ Due to SWA-related issues on macOS, the frontend deployment requires additional 
    2. Copy the deployment token from the resource you just created
    3. While still in the frontend directory, run:
       ```bash
-      swa deploy ./dist --env=production --deployment-token=<YOUR-DEPLOYMENT-TOKEN-PLACEHOLDER>
+      swa deploy ./out --env=production --deployment-token=<YOUR-DEPLOYMENT-TOKEN-PLACEHOLDER>
       ```
       Replace `<YOUR-DEPLOYMENT-TOKEN-PLACEHOLDER>` with your actual deployment token
    4. Wait for the deployment to complete
