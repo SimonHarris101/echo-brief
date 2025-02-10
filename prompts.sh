@@ -1,4 +1,4 @@
-curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer BEARER_CODE" \
      --data-raw '{
@@ -13,7 +13,7 @@ curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
            }
          }'
 
-curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer BEARER_CODE" \
      --data-raw '{
@@ -27,7 +27,7 @@ curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
             }
         }
         }'
-curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer BEARER_CODE" \
      --data-raw '{
@@ -42,7 +42,7 @@ curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
            }
          }'
 
-curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer BEARER_CODE" \
      --data-raw '{
@@ -59,7 +59,7 @@ curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
 
 
 
-curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer BEARER_CODE" \
      --data-raw '{
@@ -74,3 +74,17 @@ curl -X POST "https://REPLACE_API_URL.azurewebsites.net/create_prompt" \
            }
          }'
 
+curl -X POST "https://tf-echo-brief-dev-echo-brief-backend-api-o3a5.azurewebsites.net/create_prompt" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzaW1vbmhhcnJpc0BzcnN3YWxlcy5jb20iLCJleHAiOjE3MzkzODIxMjJ9.fOvP2VAuNTKHsLhx6itySEPA0XF8UDnyjPOCBAe-KXQ" \
+     --data-raw '{
+           "name": "Social Worker - Adult",
+           "subcategories": {
+               "Adult Stat Visit": {
+                   "instruction": "Using prompt context, expand on the summary of the full transcript.",
+                   "task": "Your task is to analyze the transcript and expand on the following:",
+                   "details": "1. **List of Attendees**:\\n - Include full names, job titles, and departments.\\n - Specify their roles in the meeting and key contributions.\\n 2. **Discussion Points**:\\n - Detail each point with specific input from attendees.\\n - Include primary concerns and responses.\\n 3. **Elaboration on Each Discussion Point**:\\n - **Detailed Arguments**: Deep dive into who said what and why.\\n - **Background and Context**: Include relevant context.\\n - **Responses and Reactions**: Note any agreements or disagreements.\\n - **Examples and Data**: Incorporate supporting details.\\n - **Broader Implications**: Discuss future impacts.\\n 4. **Actions to Take/Decisions Made**:\\n - Clearly list decisions, actions to take, deadlines, and next steps.",
+                   "notes": "Focus on enriching the **Elaboration on Each Discussion Point** section with specific details, context, and examples.\\n Ensure the summary is supportive, constructive, and professional.\\n **Do NOT include any factual information that was not provided in the prompt context.**\\n **If no information is available for any section, display ''No Information Provided''.**"
+               }
+           }
+         }'
