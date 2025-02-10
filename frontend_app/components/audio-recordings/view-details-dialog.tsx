@@ -111,56 +111,63 @@ export function ViewDetailsDialog({ recording, open, onOpenChange }: ViewDetails
             </div>
           </div>
 
-          <Separator className="my-4 border-gray-300 dark:border-gray-700" />
+
 
           {recording.transcription_file_path && (
-            <div className="mb-2">
-              <h3 className="text-md font-semibold flex items-center mb-1">
-                <FileText className="mr-2" /> Transcription
-              </h3>
-              {transcriptionText ? (
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg text-sm max-h-40 overflow-y-auto whitespace-pre-wrap">
-                  {transcriptionText}
-                </div>
-              ) : (
-                <p>Loading...</p>
-              )}
-              <Button onClick={() => window.open(recording.transcription_file_path, "_blank")} variant="outline" className="w-full font-semibold rounded-lg shadow-md mt-2">
-                Download Transcription TXT
-              </Button>
-            </div>
+            <>
+              <Separator className="my-4 border-gray-300 dark:border-gray-700" />
+              <div className="mb-2">
+                <h3 className="text-md font-semibold flex items-center mb-1">
+                  <FileText className="mr-2" /> Transcription
+                </h3>
+                {transcriptionText ? (
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg text-sm max-h-40 overflow-y-auto whitespace-pre-wrap">
+                    {transcriptionText}
+                  </div>
+                ) : (
+                  <p>Loading...</p>
+                )}
+                <Button onClick={() => window.open(recording.transcription_file_path, "_blank")} variant="outline" className="w-full font-semibold rounded-lg shadow-md mt-2">
+                  Download Transcription TXT
+                </Button>
+              </div>
+            </>
           )}
 
-          <Separator className="my-4 border-gray-300 dark:border-gray-700" />
 
           {recording.analysis_text && (
-            <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
-              <h3 className="text-lg font-bold flex items-center mb-2">
-                <FileText className="mr-2" /> Analysis Summary
-              </h3>
+            <>
+              <Separator className="my-4 border-gray-300 dark:border-gray-700" />
 
-              {recording.analysis_text.split("\n\n").map((section, index) => {
-                const lines = section.split("\n");
-                const title = lines[0];
-                const content = lines.slice(1);
+              <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+                <h3 className="text-lg font-bold flex items-center mb-2">
+                  <FileText className="mr-2" /> Analysis Summary
+                </h3>
 
-                return (
-                  <div key={index} className="mt-4">
-                    <h4 className="text-md font-semibold">{title}</h4>
-                    <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-2">
-                      {content.map((point, subIndex) => (
-                        <li key={subIndex}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
+                {recording.analysis_text.split("\n\n").map((section, index) => {
+                  const lines = section.split("\n");
+                  const title = lines[0];
+                  const content = lines.slice(1);
+
+                  return (
+                    <div key={index} className="mt-4">
+                      <h4 className="text-md font-semibold">{title}</h4>
+                      <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-2">
+                        {content.map((point, subIndex) => (
+                          <li key={subIndex}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button onClick={() => window.open(recording.analysis_file_path, "_blank")} variant="outline" className="w-full font-semibold rounded-lg shadow-md mt-2">
+                Download Analysis PDF
+              </Button>
+            </>
           )}
 
-          <Button onClick={() => window.open(recording.analysis_file_path, "_blank")} variant="outline" className="w-full font-semibold rounded-lg shadow-md mt-2">
-            Download Analysis PDF
-          </Button>
 
         </div>
       </DialogContent>

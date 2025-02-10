@@ -1,5 +1,5 @@
-import { REGISTER_API, LOGIN_API, UPLOAD_API } from "../constants/apiConstants"
-import { BASE_URL } from "../constants/apiConstants"
+import { REGISTER_API, LOGIN_API, UPLOAD_API } from "../lib/apiConstants"
+import { BASE_URL } from "../lib/apiConstants"
 
 interface RegisterResponse {
   status: number
@@ -122,4 +122,3 @@ export async function fetchPrompts(): Promise<PromptsResponse> {
 
   return await response.json()
 }
-
