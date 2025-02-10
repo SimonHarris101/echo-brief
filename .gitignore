@@ -1,5 +1,5 @@
 # Backend specific
-prompt.sh 
+prompts.sh 
 .$ArchDesign.drawio.bkp
 /backend/.env
 /backend/.env.test
