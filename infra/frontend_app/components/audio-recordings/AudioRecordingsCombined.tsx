@@ -49,11 +49,13 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
   const recordsPerPage = 10;
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
 
 
   const form = useForm<FilterValues>({
     resolver: zodResolver(filterSchema),
-    defaultValues: { ...initialFilters, created_at: format(new Date(), "yyyy-MM-dd") },
+    defaultValues: { ...initialFilters, created_at: "" },
   });
 
   // Fetch data from API and cache it
@@ -116,7 +118,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
       return (
         (data.job_id ? job.id.includes(data.job_id) : true) &&
         (data.status !== "all" ? job.status === data.status : true) &&
-        (data.created_at ? jobDate === data.created_at : true)
+        (data.created_at ? jobDate === format(new Date(data.created_at), "yyyy-MM-dd") : true)
       );
 
 
@@ -146,7 +148,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
 
   return (
     <AudioRecordingsProvider>
-      <Card className="max-w-5xl mx-auto mt-8 p-6">
+      <Card className="max-w-5xl mx-auto mt-8 p-6 w-full">
         <CardHeader>
           <CardTitle>Audio Recordings</CardTitle>
         </CardHeader>
@@ -182,9 +184,9 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                   control={form.control}
                   name="created_at"
                   render={({ field }) => (
-                    <FormItem >
+                    <FormItem>
                       <FormLabel>Upload Date</FormLabel>
-                      <Popover>
+                      <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -193,6 +195,7 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                                 "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
+                              onClick={() => setIsDatePickerOpen(true)}
                             >
                               {field.value ? format(new Date(field.value), "yyyy-MM-dd") : "Pick a date"}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -203,7 +206,13 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
                           <Calendar
                             mode="single"
                             selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                            onSelect={(date) => {
+                              const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+                              field.onChange(formattedDate);
+                              form.trigger("created_at");
+                              onSubmit({ ...form.getValues(), created_at: formattedDate });
+                              setIsDatePickerOpen(false);
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -242,48 +251,56 @@ export function AudioRecordingsCombined({ initialFilters }: { initialFilters: Fi
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell className="text-blue-500 font-medium">{row.file_name}</TableCell>
-
-                  <TableCell>
-                    <Badge className={cn("px-4 py-1 text-xs rounded-md min-w-[100px] flex items-center justify-center", statusVariants[row.status] || statusVariants.default)}>
-                      {row.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(parseInt(row.created_at)).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {/* Action Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={() => setSelectedRecording(row)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      {selectedRecording && selectedRecording.id === row.id && (
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedRecording(row);
-                            setIsDialogOpen(true);
-                          }}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          {row.status === "uploaded" && (
-                            <DropdownMenuItem onClick={() => null}>
-                              <RefreshCw className="mr-2 h-4 w-4" />
-                              Retry Processing
+              {paginatedData.length > 0 ? (
+                paginatedData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell className="text-blue-500 font-medium">{row.file_name}</TableCell>
+                    <TableCell>
+                      <Badge className={cn("px-4 py-1 text-xs rounded-md min-w-[100px] flex items-center justify-center", statusVariants[row.status] || statusVariants.default)}>
+                        {row.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(parseInt(row.created_at)).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {/* Action Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" onClick={() => setSelectedRecording(row)}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        {selectedRecording && selectedRecording.id === row.id && (
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedRecording(row);
+                              setIsDialogOpen(true);
+                            }}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
                             </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      )}
-                    </DropdownMenu>
+                            {row.status === "uploaded" && (
+                              <DropdownMenuItem onClick={() => null}>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Retry Processing
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        )}
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                    No results found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
+
           </Table>
 
           {/* Pagination Controls*/}

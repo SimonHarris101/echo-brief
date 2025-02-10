@@ -1,278 +1,365 @@
-Below is an updated version of the README, incorporating a new section about the Terraform automation folder and how it relates to the Recruitment Voice Assistant project. Adjust paths, naming conventions, and details as needed for your specific environment and project requirements.
-
----
-
 # Azure Solution Deployment Using Terraform
 
 ## Table of Contents
-- [Azure Solution Deployment Using Terraform](#azure-solution-deployment-using-terraform)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Prerequisites](#prerequisites)
-  - [Forking the Repository](#forking-the-repository)
-  - [Terraform State Management](#terraform-state-management)
-    - [Creating Azure Storage for Terraform State](#creating-azure-storage-for-terraform-state)
-    - [Configuring Terraform Backend](#configuring-terraform-backend)
-  - [Deployment Steps](#deployment-steps)
-  - [Automation for the Recruitment Voice Assistant](#automation-for-the-recruitment-voice-assistant)
-  - [Understanding the Terraform Configuration Files](#understanding-the-terraform-configuration-files)
-    - [rg.tf](#rgtf)
-    - [variables.tf](#variablestf)
-    - [acs.tf](#acstf)
-    - [app.tf](#apptf)
-    - [cognitive\_services.tf](#cognitive_servicestf)
-    - [cosmos.tf](#cosmostf)
-    - [event\_grid.tf](#event_gridtf)
-    - [log\_analytics.tf](#log_analyticstf)
-    - [openai.tf](#openaitf)
-    - [redis.tf](#redistf)
-  - [Testing and Validation](#testing-and-validation)
-  - [Additional Resources](#additional-resources)
-  - [Project URL](#project-url)
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Forking the Repository](#forking-the-repository)
+- [Terraform State Management](#terraform-state-management)
+- [Resource Components](#resource-components)
+- [Deployment Steps](#deployment-steps)
+- [Understanding the Terraform Configuration Files](#understanding-the-terraform-configuration-files)
+- [Testing and Validation](#testing-and-validation)
+- [Troubleshooting](#troubleshooting)
+- [Clear Deployment](#clear-deployment)
 
 ## Overview
-This repository contains Terraform code to deploy an Azure-based AI solution. The structure and scripts herein can be adapted for various use cases, including the Recruitment Voice Assistant solution.
+This repository contains Terraform code to deploy an Azure-based Echo Brief solution, which includes various Azure services configured to work together seamlessly.
 
 ## Prerequisites
 Before you start, ensure you have:
-- [Terraform](https://www.terraform.io/downloads.html) installed locally.
-- Access to an Azure subscription.
-- A GitHub account and personal access token with necessary permissions.
-- An Azure storage account and container for Terraform state management (see [Terraform State Management](#terraform-state-management) section).
+- [Terraform](https://www.terraform.io/downloads.html) installed locally
+- Access to an Azure subscription
+- Azure CLI installed and configured
+- A GitHub account (if you plan to fork the repository)
 
-## Forking the Repository
-1. Navigate to the main page of the repository.
-2. Click the "Fork" button in the upper-right corner.
-3. Select your GitHub account as the destination for the fork.
-4. Once forked, clone your repository to your local machine:
+## Resource Components
+The solution deploys the following Azure resources:
+
+1. **Backend API (Azure Web App)**
+   - Linux-based App Service Plan (B3 SKU)
+   - Python 3.11 runtime
+   - Managed identity for secure service connections
+   - CORS enabled with all origins allowed
+   - Built-in authentication and FTPS support
+
+2. **Frontend (Static Web App)**
+   - Hosted in West Europe
+   - Integrated with the backend API
+   - Automated deployment pipeline
+
+3. **Azure Cosmos DB**
+   - Serverless capacity
+   - SQL API
+   - Geo-redundant backup
+   - Three containers:
+     - voice_auth (for authentication)
+     - voice_jobs (for job management)
+     - voice_prompts (for prompt storage)
+
+4. **Azure OpenAI Service**
+   - Custom GPT-4 deployment
+   - Diagnostic logging enabled
+   - System-assigned managed identity
+
+5. **Azure Cognitive Services (Speech)**
+   - Custom subdomain configuration
+   - System-assigned managed identity
+   - Public network access enabled
+
+6. **Storage Account**
+   - Standard LRS replication
+   - Private container for recordings
+   - Shared access key enabled
+
+7. **Log Analytics**
+   - 30-day retention policy
+   - PerGB2018 SKU
+   - Integrated with other services for centralized logging
+
+## Deployment Steps
+
+1. **Prepare Your Environment**
    ```bash
-   git clone https://github.com/YOUR_GITHUB_USERNAME/ACSOpenAIVoice.git
-   cd ACSOpenAIVoice/automation
+   # Login to Azure
+   az login
+
+   # Clone the repository
+   git clone <repository-url>
+   cd <repository-name>
    ```
 
-## Terraform State Management
-### Creating Azure Storage for Terraform State
-```powershell
-az login
+2. **Configure Variables**
+   - Create a `terraform.tfvars` file with your subscription ID and other variables
+   - Set the `is_windows` variable based on your operating system
 
-az group create --name terraform --location eastus
+3. **Initialize and Deploy**
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply -auto-approve
+   ```
 
-az storage account create --name terraform"<your unique identifyer>" --resource-group terraform --sku Standard_LRS
+## Understanding the Terraform Configuration Files
 
-az storage container create --name tfstate --account-name terraform"<your unique identifyer>"
-```
+### backend_api.tf
+Defines the backend API infrastructure:
+- Linux App Service Plan (B3 SKU)
+- Web App with Python 3.11
+- Managed identity and role assignments
+- Integration with Cosmos DB and Storage
 
-### Configuring Terraform Backend
-Update `backend.tf` as needed:
+### cosmos.tf
+Configures the Cosmos DB infrastructure:
+- Serverless account with SQL API
+- Three containers with specific indexing policies
+- Custom role definitions for access control
+- Automatic backup configuration
+
+### openai.tf
+Sets up Azure OpenAI service:
+- Custom deployment of GPT-4
+- Diagnostic settings integration
+- System-assigned managed identity
+
+### frontend.tf
+Manages the frontend Static Web App:
+- Automated deployment process
+- Environment variable configuration
+- Integration with backend API
+
+### locals.tf
+Defines common variables and naming conventions:
+- Resource naming patterns
+- Default tags
+- Operating system-specific commands
+
+### storage_account.tf
+Configures Azure Storage:
+- Standard storage account
+- Private container for recordings
+- Shared access key configuration
+
+## Testing and Validation
+1. After deployment, verify resources in Azure Portal
+2. Test backend API endpoints
+3. Verify frontend Static Web App deployment
+4. Check Cosmos DB containers and permissions
+5. Validate OpenAI service deployment
+
+## Troubleshooting
+Common issues and solutions:
+
+1. **Deployment Failures**
+   - Verify Azure CLI login status
+   - Check subscription permissions
+   - Validate variable values in terraform.tfvars
+
+2. **Frontend Deployment Issues**
+   - Ensure SWA CLI is installed
+   - Verify deployment token
+   - Check build output directory
+
+## One-click Deployment on Bare Metal (Mac Users)
+
+### Dependencies
+1. **Azure CLI**: [Install the Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+   - Required for user authentication
+   
+2. **Terraform**: [Install Terraform](https://developer.hashicorp.com/terraform/downloads)
+   - Deploys the resources
+
+3. **Python 3.11**: [Download Python](https://www.python.org/downloads/)
+   - Required for inserting records into CosmosDB
+
+4. **Node.js** (version 18 or later): [Install Node.js](https://nodejs.org/en/download/)
+   - Required by Static Web Apps (SWA)
+
+5. **SWA CLI**: [Install SWA CLI](https://azure.github.io/static-web-apps-cli/docs/use/install/)
+   - Deploys static web app content
+
+6. **jq** (version 1.7 or later): [Install jq](https://jqlang.github.io/jq/download/)
+   - Required for replacing placeholders in JavaScript
+
+### Deployment Steps
+
+#### Initial Setup
+1. Clone the entire repository onto your local disk
+2. Open the folder using Visual Studio Code
+3. Navigate to the `infra` folder
+
+#### Configuration
+1. Rename `variables_need_replace.tf.sample` by removing `.sample`
+2. Provide values for the variables in `variables_need_replace.tf`
+
+##### Example Variables Configuration
+Below is an example of the variables configuration. Modify these values according to your needs:
+
 ```hcl
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "terraform"
-    storage_account_name = "terraform<your unique identifyer>"
-    container_name       = "tfstate"
-    key                  = "terraform.tfstate"
-    use_azuread_auth     = true
-  }
+# Required
+variable "subscription_id" {
+  description = "The Azure subscription ID"
+  type        = string
+}
+
+# Environment Configuration
+variable "prefix" {
+  default = "tf-"                # Prefix for resource names
+}
+
+variable "name" {
+  default = "echo-brief"         # Project name
+}
+
+variable "environment" {
+  default = "dev"               # Environment (dev, staging, prod)
+}
+
+# System Configuration
+variable "is_windows" {
+  type        = bool
+  default     = true            # Set to false for Mac/Linux
+  description = "Operating system type (windows/linux/mac)"
+}
+
+# Resource Locations
+variable "location" {
+  default = "uksouth"           # Primary location
+}
+
+variable "openai_location" {
+  default = "swedencentral"     # OpenAI service location
+}
+
+variable "voice_location" {
+  default = "northeurope"       # Voice services location
+}
+
+variable "static_web_location" {
+  default = "westeurope"        # Frontend app location
+}
+
+# Service Configuration
+variable "storage_container_name" {
+  default = "recordingcontainer"
+}
+
+variable "resource_group_name" {
+  default = "accelerator-rg"
+}
+
+variable "custom_domain" {
+  default = "echo-brief"
+}
+
+# SKU and Service Settings
+variable "openai_sku" {
+  default = "S0"
+}
+
+variable "speech_sku" {
+  default = "S0"
+}
+
+variable "log_analytics_sku" {
+  default = "PerGB2018"
+}
+
+# Log Analytics Configuration
+variable "log_analytics_workspace_name" {
+  description = "Specifies the name of the log analytics workspace"
+  default     = "Workspace"
+  type        = string
+}
+
+variable "log_analytics_retention_days" {
+  description = "Specifies the number of days of the retention policy"
+  type        = number
+  default     = 30
+}
+
+# Network Access
+variable "public_network_access_enabled" {
+  default = true
 }
 ```
 
-Update `terraform.tfvars` with your Azure subscription ID.
+Important Notes:
+- The `subscription_id` is required and must be provided
+- For Mac users, set `is_windows` to `false`
+- Location variables can be adjusted based on your region requirements
+- SKU values can be modified based on your performance needs
+- Default values can be overridden in your `terraform.tfvars` file
 
-## Deployment Steps
-1. **Clone the Repository (if not already done):**
+#### Azure Authentication and Deployment
+1. Authenticate with Azure:
    ```bash
-   cd automation
+   az login --tenant xxxxxx
    ```
+   Note: While the `--tenant` parameter is optional, it's recommended if you have multiple tenants
 
-2. **Initialize Terraform:**
+2. Initialize Terraform:
    ```bash
    terraform init
    ```
 
-3. **Plan the Deployment:**
+3. Preview the deployment:
    ```bash
    terraform plan
    ```
 
-4. **Apply the Configuration:**
+4. Deploy the resources:
    ```bash
    terraform apply -auto-approve
    ```
 
-## Automation for the Recruitment Voice Assistant
-The repository includes an `automation` folder containing Terraform definitions and scripts that facilitate the provisioning of resources for the Recruitment Voice Assistant project. The Terraform templates create and configure essential Azure services—such as Cognitive Services, Azure Communication Services (ACS), Azure OpenAI, Event Grid, Redis, Cosmos DB, Azure Functions, and Log Analytics—needed to run the recruitment voice assistant application.
+5. Once deployment completes, note the `frontend_static_web_app_url` from the outputs
 
-**Key Points:**
-- **Project**: Recruitment Voice Assistant  
-- **URL**: [https://github.com/Aastha2024/ACSOpenAIVoice](https://github.com/Aastha2024/ACSOpenAIVoice)
-- **Folder**: `automation` (root of Terraform files)
+#### Additional Steps for Mac Users
+Due to SWA-related issues on macOS, the frontend deployment requires additional manual steps:
 
-Within the `automation` directory, you will find:
-- **Terraform Configuration Files**: Files like `acs.tf`, `openai.tf`, `cognitive_services.tf`, `cosmos.tf`, and `redis.tf` define the services required for the Recruitment Voice Assistant.
-- **Modules**: The `modules` directory provides reusable Terraform modules, enabling a modular and maintainable infrastructure codebase.
-- **API Deployment**: The `api_zip.zip` file, along with `app.tf` and other resource definitions, illustrate how the application is packaged and deployed onto Azure Functions or Web Apps.
-- **State Management**: The `backend.tf` file ensures that Terraform maintains state in remote Azure storage.
-- **Phone Number Acquisition**: Scripts like `purchase_phone_number.py` can integrate with ACS to provision phone numbers for voice interaction.
-- **Environment Variables**: Before running the automation, rename the `.env.sample` file to `.env` and populate it with the required environment variables for local development and testing.
+1. **Prerequisites Installation**
+   - Install Node.js (version 18 or later): [Install Node.js](https://nodejs.org/en/download/)
+   - Install Static Web Apps CLI:
+     ```bash
+     npm install -g @azure/static-web-apps-cli
+     ```
 
-**Steps for the Recruitment Voice Assistant Automation:**
-1. **Initialize and Apply Terraform:**
-   - Navigate to `automation` folder.
-   - Run `terraform init` to set up providers and modules.
-   - Run `terraform plan` to review the changes.
-   - Run `terraform apply -auto-approve` to provision resources.
+2. **Frontend Preparation**
+   1. Copy the frontend folder to the `infra` directory:
+      ```bash
+      cp -r ../frontend ./
+      ```
+   2. Navigate to the copied frontend folder:
+      ```bash
+      cd frontend
+      ```
+   3. Install dependencies and build the project:
+      ```bash
+      npm install --legacy-peer-deps
+      npm run build
+      ```
 
-2. **Validate Resources:**
-   - Check Azure Portal for deployed resources.
-   - Test voice interaction features using the provisioned phone number and endpoints.
+3. **Frontend Deployment**
+   1. Access the Azure portal and navigate to your Static Web App service
+   2. Copy the deployment token from the resource you just created
+   3. While still in the frontend directory, run:
+      ```bash
+      swa deploy ./dist --env=production --deployment-token=<YOUR-DEPLOYMENT-TOKEN-PLACEHOLDER>
+      ```
+      Replace `<YOUR-DEPLOYMENT-TOKEN-PLACEHOLDER>` with your actual deployment token
+   4. Wait for the deployment to complete
 
-By leveraging this Terraform automation, teams can rapidly deploy, update, and tear down the infrastructure required for the Recruitment Voice Assistant, ensuring consistent environments and enabling a continuous delivery pipeline.
+#### Accessing the Application
+1. Open the `frontend_static_web_app_url` in your browser
+2. Microsoft Edge is recommended for optimal performance
 
-## Understanding the Terraform Configuration Files
+## Clear Deployment
+To remove all deployed resources:
+```bash
+terraform destroy -auto-approve
+```
 
-Below is a high-level overview of what each of the primary Terraform files does, helping you understand the role they play in provisioning and configuring the infrastructure for the Recruitment Voice Assistant solution.
+## Important Notices
+1. If you encounter a `401` error:
+   - Re-run `az login` to ensure you're logged into the correct tenant
 
-### rg.tf
-This file creates the **Azure Resource Group**, a fundamental organizational unit in Azure. By defining a resource group:
+2. If you encounter a `502` error or other issues:
+   - Re-run `terraform apply -auto-approve`
 
-- You establish a logical container for all your related Azure resources.
-- It simplifies management, deployment, and lifecycle operations for the infrastructure associated with the Recruitment Voice Assistant.
+3. For Mac users encountering "Permission denied":
+   - Prepend commands with `sudo`, e.g.:
+   ```bash
+   sudo terraform apply -auto-approve
+   ```
 
-This ensures that all provisioned resources remain organized, easily manageable, and share a consistent location and tagging strategy.
-
-### variables.tf
-This file declares **input variables** used throughout the Terraform configuration. It provides a centralized location for specifying deployment parameters, such as:
-
-- **Subscription and Location Details**: Variables like `subscription_id` and `location` determine where resources are deployed.
-- **Naming Conventions**: Variables like `prefix`, `name`, and `environment` help ensure consistent resource naming and support multiple deployment environments.
-- **Service-Specific Settings**: Variables for resources like `openai_sku`, `speech_sku`, and `acs_data_location` define the characteristics of specific services.
-- **Logging and Monitoring Configuration**: Variables like `log_analytics_sku` and `log_analytics_retention_days` control the configuration of the logging and monitoring resources.
-- **Other Resource Details**: Parameters like `resource_group_name`, `postgres_db_name`, and `custom_domain` allow for flexible and customizable deployments.
-
-By adjusting these variables, you can quickly adapt the infrastructure to different environments, regions, and performance requirements without modifying the core Terraform logic.
-
-### acs.tf
-This file provisions the **Azure Communication Services (ACS)** resource, which handles telephony and messaging capabilities for the voice assistant. Specifically, it:
-
-- Creates an ACS resource with a system-assigned identity.
-- Runs a Python script (`purchase_phone_number.py`) to buy and assign a phone number from ACS.
-  
-By managing ACS configuration here, the voice assistant can make and receive calls, enabling its core telephony features.
-
-> [!TIP]  
-> If you prefer not to run the Python script, you can comment it out in the `acs.tf` file and purchase a phone number manually via the Azure portal. In that case, add a placeholder random string to the Terraform configuration and then manually update the phone number in the application settings. This approach provides flexibility if you encounter issues with automated phone number provisioning.
-
-### app.tf
-The `app.tf` file orchestrates the deployment and configuration of core application components, including:
-
-- **Application Insights**: For monitoring and observability of the application’s performance.
-- **Log Analytics**: For centralized logging and diagnostic data.
-- **App Service Plan**: To host and scale the voice assistant’s application workload.
-- **Azure Web App (API)**: Deploys the Python-based API application, sets environment variables, and integrates it with other services such as ACS, Cognitive Services, and Cosmos DB.
-
-This file ensures that all application dependencies are properly wired together, enabling a seamless, fully functional backend for the voice assistant.
-
-### cognitive_services.tf
-The `cognitive_services.tf` file sets up a **Cognitive Services** resource that provides AI capabilities like speech recognition, language understanding, and other cognitive functionalities. Key points include:
-
-- Configuring a Cognitive Services account (including speech features).
-- Enabling a system-assigned identity for secure access and integration with other Azure services.
-  
-By managing Cognitive Services here, the voice assistant can process and understand user speech, offering a more intelligent and interactive call experience.
-
-### cosmos.tf
-This file provisions and configures **Azure Cosmos DB**, a globally distributed, multi-model database service, to store session data and call records for the Recruitment Voice Assistant. Specifically, it:
-
-- Creates a **Cosmos DB account** configured for high availability and serverless capacity.
-- Sets up a **SQL database** and a **SQL container** (`CallSessions`) to store call session information, including partitioning and indexing policies.
-- Defines **role definitions** for data reader and data contributor, enabling granular access control for services and applications interacting with the Cosmos DB. 
-
-By implementing Cosmos DB resources and appropriate role assignments, this file ensures the voice assistant can efficiently query, record, and manage call session data.
-
-### event_grid.tf
-This file configures **Event Grid** resources to handle event-driven integrations between Azure Communication Services (ACS) and the application's API. It:
-
-- Creates a **system topic** that listens for ACS events, such as incoming calls.
-- Sets up an **event subscription** that routes these events to the API’s designated endpoint.
-
-By leveraging Event Grid, the Recruitment Voice Assistant can automatically respond to call-related events, enabling a real-time, event-driven workflow for the voice assistant logic.
-
-### log_analytics.tf
-This file sets up a **Log Analytics Workspace**, which centralizes and stores logs, metrics, and diagnostic data from various Azure resources. By provisioning this workspace:
-
-- You gain a dedicated environment for querying and analyzing application and infrastructure logs.
-- It can integrate with Application Insights and other services for enhanced observability and troubleshooting.
-  
-Overall, this resource helps ensure comprehensive monitoring, diagnostics, and performance insights for the Recruitment Voice Assistant’s environment.
-
-### openai.tf
-This file provisions and configures **Azure OpenAI resources** to provide AI-driven text generation, embeddings, and other advanced language capabilities for the Recruitment Voice Assistant. It includes:
-
-- **Azure Cognitive Account (OpenAI Kind)**: Establishes a dedicated Azure OpenAI service instance, enabling interaction with GPT-based models.
-- **OpenAI Deployments**: Deploys specific models (e.g., `gpt-4o`, `text-embedding-ada-002`) to the OpenAI service with defined SKUs and capacities. Each deployment specifies the model format, name, version, and scaling options.
-- **Diagnostic Settings**: Integrates OpenAI logs and metrics with a Log Analytics Workspace, facilitating monitoring, troubleshooting, and performance analysis.
-
-In essence, `openai.tf` sets up a scalable, monitored, and model-rich environment where the voice assistant can leverage advanced AI language capabilities.
-
-### redis.tf
-This file sets up an **Azure Redis Cache** resource to provide a high-performance, in-memory data store. Key aspects include:
-
-- **Premium SKU with Zone Redundancy**: Ensures high availability, fault tolerance, and low-latency data access.
-- **TLS Encryption and Configuration**: Enforces secure connections (minimum TLS version 1.2) and customizable memory policies.
-- **Multiple Replica Support**: Creates multiple replicas for robust failover and improved reliability.
-
-By provisioning Redis here, the voice assistant can rapidly store and retrieve session state, caching frequently accessed data and improving overall application responsiveness.
-
-
-> [!IMPORTANT]
-> Post-Deployment Mandatory Step
-After deploying your resources with Terraform, you need to manually connect Azure Communication Services (ACS) to Azure Cognitive Services through the Azure portal. This process involves enabling a managed identity on the ACS resource and granting the appropriate role assignments to your Cognitive Services resource. For detailed instructions, please follow this guide: [Azure Communication Services and Azure Cognitive Services Integration](https://learn.microsoft.com/en-us/azure/communication-services/concepts/call-automation/azure-communication-services-azure-cognitive-services-integration).
-
-## Testing and Validation
-1. Log into the [Azure Portal](https://portal.azure.com/).
-2. Navigate to the resource group(s) deployed by Terraform.
-3. Confirm that all resources (e.g., ACS, Cognitive Services, Redis, Cosmos DB, and Azure Functions) are deployed.
-4. Test the Recruitment Voice Assistant or your AI translation solution by invoking the endpoints, making phone calls (if integrated), and verifying application responses.
-
-## Troubleshoot
-
-### Issue 1: Storage Account Key Access
-
-- **Terraform storage account – enable “Allow storage account key access” if not enabled.**
-
-![Terraform Error](image.png)
-
-- Then perform the following action from the portal:
-
-(![Portal Steps](image-1.png))
-
-### Issue 2: Conflict in the diagnostic
-![Diagnostic Settings Error](image-2.png)
-If there is a conflict in the diagnostic settings (e.g., existing settings that are not managed by Terraform), delete the diagnostic settings to allow Terraform to manage them seamlessly. Follow these steps:
-
-1. Navigate to the **Azure Portal**.
-2. Go to the **Diagnostic settings** section of the resource.
-3. Identify any existing diagnostic settings causing the conflict.
-4. Delete the conflicting diagnostic settings.
-
-This will resolve the conflict and enable Terraform to manage the resource effectively.
-![Diagnostic Settings Portal](image-3.png)
-
-### Issue 3: Add Cognitive Service to the Azure Communication Service
-
-Sometimes, adding the Azure Communication Service can take time to reflect. After connecting the Cognitive Service to the Azure Communication Service:
-
-1. Navigate to the **Azure Portal**.
-2. Open the Azure Communication Service resource.
-3. Select **Connect cognitive service**, choose the relevant **Subscription**, **Resource Group**, and **Resource**, and click **Connect**.
-4. Wait for 5-10 minutes for the changes to take effect before proceeding.
-
-![Connect Cognitive Service](image-4.png)
-
-
-## Additional Resources
-- [Terraform Documentation](https://www.terraform.io/docs/index.html)
-- [Azure Subscription Management](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
-- [Azure Cognitive Services Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/)
+Note: Before destroying resources, ensure you have backups of any important data.

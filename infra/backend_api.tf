@@ -158,28 +158,8 @@ resource "azurerm_cosmosdb_sql_role_definition" "all_access_role" {
   permissions {
     data_actions = [
       # Database level
-      # "Microsoft.DocumentDB/databaseAccounts/readMetadata",
-      #"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write",
       "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*",
-      "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*",
-
-      # "Microsoft.DocumentDB/accounts/readMetadata",
-
-
-      # "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions/read",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions/write",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions/delete",
-
-      # # Container level
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/read",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/write",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/delete",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/executeQuery",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/readChangeFeed",
-      # # Items in containers
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/write",
-      # "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/delete"
+      "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
 
     ]
   }

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
-import { UPLOAD_API, API_KEY } from "../constants/apiConstants";
+import { UPLOAD_API } from "../lib/apiConstants";
 
 const useUploadedFiles = () => {
   const [uploadResponse, setUploadResponse] = useState<any>(null);
@@ -30,7 +30,6 @@ const useUploadedFiles = () => {
         const response = await axios.post(UPLOAD_API, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            "Ocp-Apim-Subscription-Key": API_KEY,
           },
         });
 
