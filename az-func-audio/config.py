@@ -27,7 +27,7 @@ class AppConfig:
 
             # Cosmos DB settings
             self.cosmos_endpoint: str = get_required_env_var("AZURE_COSMOS_ENDPOINT")
-            self.cosmos_database: str = f"{prefix}db"
+            self.cosmos_database: str = os.getenv("AZURE_COSMOS_DB_NAME", "VoiceDB")
             self.cosmos_jobs_container: str = f"{prefix}jobs"
             self.cosmos_prompts_container: str = f"{prefix}prompts"
 
