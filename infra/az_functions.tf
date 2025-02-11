@@ -5,7 +5,7 @@ resource "azurerm_service_plan" "az_func_audio_service_plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "S1"
+  sku_name            = "B1"
   tags                = local.default_tags
 
 }
@@ -66,6 +66,8 @@ resource "azurerm_linux_function_app" "function_call_function_app" {
     audio__accountName     = azurerm_storage_account.storage.name
     audio__credential      = "managedidentity"
     AZURE_COSMOS_DB_PREFIX = "voice_"
+    AZURE_COSMOS_DB        = azurerm_cosmosdb_sql_database.voice_db.name
+
 
     AZURE_OPENAI_API_VERSION          = azurerm_cognitive_deployment.openai_deployments["gpt-4o"].model[0].version
     AZURE_OPENAI_DEPLOYMENT           = azurerm_cognitive_deployment.openai_deployments["gpt-4o"].model[0].name
@@ -182,7 +184,7 @@ resource "azurerm_role_assignment" "func_recording_container_storage_contributor
 # # Define local-exec provisioner to run az cli commands
 
 resource "null_resource" "publish_function_call_zip" {
-  #triggers = {always_run = "${timestamp()}"}
+  triggers = { always_run = "${timestamp()}" }
   provisioner "local-exec" {
     command = "az functionapp deployment source config-zip --subscription ${var.subscription_id}  --resource-group ${azurerm_linux_function_app.function_call_function_app.resource_group_name} --name ${azurerm_linux_function_app.function_call_function_app.name} --src ${data.archive_file.az_func_audio_package.output_path} --build-remote true"
   }
