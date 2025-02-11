@@ -73,10 +73,10 @@ resource "azurerm_linux_function_app" "function_call_function_app" {
     AZURE_OPENAI_API_VERSION          = azurerm_cognitive_deployment.openai_deployments["gpt-4o"].model[0].version
     AZURE_OPENAI_DEPLOYMENT           = azurerm_cognitive_deployment.openai_deployments["gpt-4o"].model[0].name
     AZURE_OPENAI_ENDPOINT             = azurerm_cognitive_account.openai.endpoint
-    AZURE_SPEECH_CANDIDATE_LOCALES    = "en-US,zu-ZA,af-ZA,cy-GB,es-ES,de-DE,fr-FR,uk-UA,ur-IN,pl-PL"
+    AZURE_SPEECH_CANDIDATE_LOCALES    = "en-US,zu-ZA,af-ZA"
     AZURE_SPEECH_DEPLOYMENT           = azurerm_cognitive_account.SpeechServices.name
     AZURE_SPEECH_MAX_SPEAKERS         = "2"
-    AZURE_SPEECH_TRANSCRIPTION_LOCALE = "en-GB"
+    AZURE_SPEECH_TRANSCRIPTION_LOCALE = "en-US"
     AzureWebJobsStorage               = azurerm_storage_account.storage.primary_connection_string
   }
   identity {
