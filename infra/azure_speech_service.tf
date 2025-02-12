@@ -22,3 +22,28 @@ resource "azurerm_cognitive_account" "SpeechServices" {
   }
 
 }
+
+
+#Storage Account Contributor
+resource "azurerm_role_assignment" "speech_service_account_contributor" {
+  depends_on           = [azurerm_cognitive_account.SpeechServices, azurerm_storage_account.storage]
+  scope                = azurerm_storage_account.storage.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_cognitive_account.SpeechServices.identity[0].principal_id
+}
+
+#Storage Blob Data Contributor
+resource "azurerm_role_assignment" "speech_service_blob_data_contributor" {
+  depends_on           = [azurerm_cognitive_account.SpeechServices, azurerm_storage_account.storage]
+  scope                = azurerm_storage_account.storage.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_cognitive_account.SpeechServices.identity[0].principal_id
+}
+
+#recordingcontainer
+resource "azurerm_role_assignment" "speech_container_storage_contributor" {
+  depends_on           = [azurerm_cognitive_account.SpeechServices, azurerm_storage_container.container]
+  scope                = azurerm_storage_container.container.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_cognitive_account.SpeechServices.identity[0].principal_id
+}
