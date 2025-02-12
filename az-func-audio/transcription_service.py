@@ -52,7 +52,7 @@ class TranscriptionService:
                 "languageIdentification": {
                     "candidateLocales": self.config.speech_candidate_locales.split(","),
                 },
-                "profanityFilterMode": "None",  # Add profanity filter settings here
+                "profanityFilterMode": "None"  # Add profanity filter settings here
             },
         }
 

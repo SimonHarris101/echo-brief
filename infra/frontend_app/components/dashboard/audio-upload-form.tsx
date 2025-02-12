@@ -11,14 +11,14 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { uploadFile, fetchPrompts } from "@/lib/api"
-import { Loader2 } from "lucide-react"
+import { Loader2, RefreshCcw } from "lucide-react"
 import { NotificationBanner } from "@/components/ui/notification-banner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Define the form schema using Zod
 const formSchema = z.object({
   audioFile: z.instanceof(File).refine((file) => file.size <= 10000000, {
-    message: "Audio file must be 5MB or less.", // \
+    message: "Audio file must be 5MB or less.",
   }),
   promptCategory: z.string({
     required_error: "Please select a prompt category.",
@@ -58,29 +58,34 @@ export function AudioUploadForm() {
     resolver: zodResolver(formSchema),
   })
 
+  const fetchAndUpdateCategories = useCallback(() => {
+    setLoadingCategories(true)
+    fetchPrompts()
+      .then((response) => {
+        const fetchedCategories = response.data
+        setCategories(fetchedCategories)
+        localStorage.setItem("promptCategories", JSON.stringify(fetchedCategories))
+        setLoadingCategories(false) // Stop loading once fetched
+      })
+      .catch((error) => {
+        console.error("Error fetching prompts:", error)
+        setNotification({
+          type: "error",
+          message: "Failed to load prompt categories. Please try again later.",
+        })
+        setLoadingCategories(false)
+      })
+  }, [])
+
   useEffect(() => {
     const storedCategories = localStorage.getItem("promptCategories")
     if (storedCategories) {
       setCategories(JSON.parse(storedCategories))
-      setLoadingCategories(false) // Stop loading once categories are set
+      setLoadingCategories(false)
     } else {
-      fetchPrompts()
-        .then((response) => {
-          const fetchedCategories = response.data
-          setCategories(fetchedCategories)
-          localStorage.setItem("promptCategories", JSON.stringify(fetchedCategories))
-          setLoadingCategories(false) // Stop loading once fetched
-        })
-        .catch((error) => {
-          console.error("Error fetching prompts:", error)
-          setNotification({
-            type: "error",
-            message: "Failed to load prompt categories. Please try again later.",
-          })
-          setLoadingCategories(false) // Stop loading on error
-        })
+      fetchAndUpdateCategories()
     }
-  }, [])
+  }, [fetchAndUpdateCategories])
 
   const onSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
@@ -161,28 +166,40 @@ export function AudioUploadForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Prompt Category</FormLabel>
-                <Select
-                  value={selectedCategory || ""}
-                  onValueChange={(value) => {
-                    field.onChange(value)
-                    setSelectedCategory(value)
-                    setSelectedSubcategory(null)
-                    form.setValue("promptSubcategory", "")
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.category_id} value={category.category_id}>
-                        {category.category_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center space-x-2">
+                  <Select
+                    value={selectedCategory || ""}
+                    onValueChange={(value) => {
+                      field.onChange(value)
+                      setSelectedCategory(value)
+                      setSelectedSubcategory(null)
+                      form.setValue("promptSubcategory", "")
+                    }}
+                    disabled={loadingCategories}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.category_id} value={category.category_id}>
+                          {category.category_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={fetchAndUpdateCategories}
+                    disabled={loadingCategories}
+                  >
+                    <RefreshCcw className="w-4 h-4 mr-2" />
+                    {loadingCategories ? "Refreshing..." : "Refresh"}
+                  </Button>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -218,40 +235,26 @@ export function AudioUploadForm() {
               </FormItem>
             )}
           />
-         {selectedSubcategoryData && (
-  <Card>
-    <CardHeader>
-      <CardTitle className="font-bold">{selectedSubcategoryData.subcategory_name}</CardTitle>
-      <CardDescription>Prompt details for the selected subcategory</CardDescription>
-    </CardHeader>
-    <CardContent className="p-4 overflow-auto max-h-60">
-      {Object.entries(selectedSubcategoryData.prompts).map(([key, value]) => (
-        <div key={key} className="mb-4">
-          <h4 className="font-semibold text-lg">{key}</h4>
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]} 
-            className="text-sm text-gray-600"
-          >
-            {value}
-          </ReactMarkdown>
-        </div>
-      ))}
-    </CardContent>
-  </Card>
-)}
-          <Button
-            type="submit"
-            disabled={isUploading || !form.formState.isValid} // Disable if uploading or form is invalid
-            className="bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              "Upload and Process"
-            )}
+          {selectedSubcategoryData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-bold">{selectedSubcategoryData.subcategory_name}</CardTitle>
+                <CardDescription>Prompt details for the selected subcategory</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 overflow-auto max-h-60">
+                {Object.entries(selectedSubcategoryData.prompts).map(([key, value]) => (
+                  <div key={key} className="mb-4">
+                    <h4 className="font-semibold text-lg">{key}</h4>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="text-sm text-gray-600">
+                      {value}
+                    </ReactMarkdown>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          <Button type="submit" disabled={isUploading || !form.formState.isValid}>
+            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Upload and Process"}
           </Button>
         </form>
       </Form>
